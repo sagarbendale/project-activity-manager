@@ -1,0 +1,190 @@
+@(title: String, isLoggedIn: Boolean, projectMap: HashMap[String, String], taskList: List[HashMap[String, String]], fieldMap: HashMap[String,String], preference: String, chartList: List[HashMap[String,String]])
+
+@import helper._
+@import views.html.bootstrap3._
+@import views.html.user._
+
+@backend(title, isLoggedIn) {
+
+	<h1>@title | <small>View/Update Projects From here</small></h1>
+	<hr/>
+	
+	
+	<div class="col-md-6 demo-wrap" id="simple-clone">
+            		
+       			<form class="form-horizontal" method="post" action="@routes.UserController.updateProject(projectMap.get("Project ID"))"> 
+				<div class="project-details">
+				
+					<div class="form-group">
+					    <label class="col-sm-3 control-label">Project Name</label>
+					    <div class="col-sm-9">
+					      <input type="text" 
+					             class="form-control" 
+					             id="projectName" 
+					             name="projectName" 
+					             value="@projectMap.get("Project Name")"
+					             placeholder="Project's Name" />
+					      </div>
+					  </div>
+				
+					<div class="form-group">
+					    <label class="col-sm-3 control-label">Project Description</label>
+					    <div class="col-sm-9">
+					      <input type="text" 
+					             class="form-control" 
+					             id="projectDescription" 
+					             name="projectDescription" 
+					             value="@projectMap.get("Project Description")"
+					             placeholder="Project's Description" />
+					      </div>
+					  </div>
+				</div>
+        		
+       			@for(task <- taskList){
+			
+						<div class="toclone">
+	                	<h2>@preference</h2>
+	                	@for( (fieldName, fieldType) <- fieldMap ){
+	                	
+	                			@if( fieldType.split(",").length > 1 ){
+	              		   			<div class="form-group">
+									    <label class="col-sm-3 control-label">@fieldName</label>
+									    <div class="col-sm-9">
+		              		   			<select class="form-control" id="@{fieldName}" name="@{fieldName}[]">
+									        @for( values <-fieldType.split(",") ) {
+									          <option id="@values" value="@values" @if(task.get(fieldName)==values){ selected }>@values</option>
+									        }
+									      </select>
+								      </div>
+							      </div>
+	              		   				
+	              		   		}else{
+	                				<div class="form-group">
+									    <label class="col-sm-3 control-label">@fieldName</label>
+									    <div class="col-sm-9">
+						    	            <input type="@fieldType" class="form-control" name="@{fieldName}[]" id="@fieldName" value="@task.get(fieldName)"/>
+									    </div>
+								    </div>
+	              		   		}
+			                	 
+		                }
+		                
+		                @if(preference.equals("Sprint")){
+		                	<div class="form-group">
+							    <label class="col-sm-3 control-label">Number of Days for Completion</label>
+							    <div class="col-sm-9">
+				    	           <h2>	@{task.get("HoursEstimated").toInt/task.get("EstimatedDailyHours").toInt}</h2> 
+							    </div>
+						    </div>
+		                }
+		                
+		                <a href="#" class="clone btn btn-default">
+	                    
+	                    New @preference
+	                    </a>
+	                    <a href="#" class="delete">Delete @preference</a>
+	        		
+	        		</div>
+				
+				}        
+				
+				<button type="submit" id="submitButton" class="btn btn-primary pull-right">Update Project</button>
+				<input type="text" hidden  readonly name="taskCount" value="1" id="taskCount"/>
+            </form>
+		
+		</div>
+		
+		@for( i <- 1 to chartList.size()){
+        	<div id="pie-container-@i" class="col-md-6" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>	 
+      	}
+		
+        
+        <script type="text/javascript">
+        	jQuery(document).ready(function(){
+        		
+        		jQuery('#taskCount').val(jQuery('.toclone').length);
+        		
+        		jQuery('#simple-clone').cloneya().on('after_clone.cloneya', function (event, toclone, newclone) {
+        		
+            		jQuery('#taskCount').val(parseInt(jQuery('#taskCount').val()) + 1);
+            	 	
+            }).on('after_delete.cloneya', function () {
+            	if( parseInt(jQuery('#taskCount').val()) > 1 ){
+            		jQuery('#taskCount').val(parseInt(jQuery('#taskCount').val()) - 1);	
+            	}
+            	
+            });
+        		
+        	jQuery('#submitButton').click(function(){
+        		jQuery('#taskCount').val(jQuery('.toclone').length);
+        	});
+        		
+       		@for( i <- 1 to chartList.size()){
+       			populatePieChart_@{i}();	 
+             	}
+        		
+        	});
+        	@chartList.size()
+        	@for( i <- 1 to chartList.size()){
+        		
+        		function populatePieChart_@{i}(){
+            		// Radialize the colors
+            	    Highcharts.getOptions().colors = Highcharts.map(Highcharts.getOptions().colors, function (color) {
+            	        return {
+            	            radialGradient: { cx: 0.5, cy: 0.3, r: 0.7 },
+            	            stops: [
+            	                [0, color],
+            	                [1, Highcharts.Color(color).brighten(-0.3).get('rgb')] // darken
+            	            ]
+            	        };
+            	    });
+
+            	    // Build the chart
+            	    $('#pie-container-@i').highcharts({
+            	        chart: {
+            	            plotBackgroundColor: null,
+            	            plotBorderWidth: null,
+            	            plotShadow: false
+            	        },
+            	        title: {
+            	            text: 'Project Status'
+            	        },
+            	        tooltip: {
+            	            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            	        },
+            	        plotOptions: {
+            	            pie: {
+            	                allowPointSelect: true,
+            	                cursor: 'pointer',
+            	                dataLabels: {
+            	                    enabled: true,
+            	                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+            	                    style: {
+            	                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+            	                    },
+            	                    connectorColor: 'silver'
+            	                }
+            	            }
+            	        },
+            	        series: [{
+            	            type: 'pie',
+            	            name: 'Project Status',
+            	            data: [
+            	                   
+            	                   @for(( chartKey, chartValue ) <- chartList.get(i-1)){
+            	                	   ['@chartKey',   @chartValue],		   
+            	                   }
+            	            ]
+            	        }]
+            	    });
+            	} 
+        		
+          	}
+        	
+        	
+        	
+        	
+        	
+        </script>
+	
+}

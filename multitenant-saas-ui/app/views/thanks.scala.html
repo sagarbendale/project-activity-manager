@@ -1,0 +1,28 @@
+@(title: String, isError: Boolean)
+
+@import helper._
+@import views.html.bootstrap3._
+
+@main(title) {
+	
+	<div class="col-md-3">
+		
+	</div>
+	
+		
+	<div class="col-md-6">
+		@if( isError ){
+				<h1>Some Problem with registration</h1>
+				<div class="alert alert-danger" role="alert">Some problem with your registration. Could not register. Please try again.</div>
+		}else{
+				<h1>Thank you for registering!</h1>
+				<div class="alert alert-success" role="alert">Thank you for registration. Please login to your account</div>
+		}
+		
+	</div>
+	
+	<div class="col-md-3">
+		
+	</div>
+	
+}

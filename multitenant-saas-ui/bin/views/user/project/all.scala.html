@@ -1,0 +1,41 @@
+@(title: String, isLoggedIn: Boolean, projectMap: HashMap[String, String])
+
+@import views.html.user._
+@import helper._
+@import views.html.bootstrap3._
+
+
+@backend(title, isLoggedIn) {
+
+	<h2><span class="glyphicon glyphicon-list-alt"></span> @title <small> | View all projects</small></h2>
+	<hr>
+	@if(projectMap.size() > 0){
+	
+		<table class="table">
+			<thead>
+				<th>Project ID</th>
+				<th>Project Name</th>
+				<th>Project Details</th>
+			</thead>
+			<tbody>
+				@for( (projectId, projectName) <- projectMap){
+					<tr>
+						<td>@projectId</td>
+						<td>@projectName</td>
+						<td><a href="" class="btn btn-default">Details</a></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		
+	}else{
+		No projects added. Please add a project.
+	}
+	
+	
+	</div>
+	
+
+	
+
+}
